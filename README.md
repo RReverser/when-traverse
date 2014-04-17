@@ -8,7 +8,9 @@ Consider this function as `Promise.map` + `Promise.all` for trees.
 
 Often enough, we have tree structures, and when we want to transform them asynchronously, we have no other options but use sync variants of functions or write ugly hacks by collecting arrays of inner promises, handling them with `Promise.all`, collecting new promises (if there are), waiting for them with `Promise.all` again and do a lot of other silly stuff.
 
-This function allows you to wait for tree of mixed promises and simple values, replace some nodes with asynchronous content, remove nodes depending on asynchronous conditions etc. and does that all that for each node as soon as it becomes available.
+This function allows you to wait for tree of mixed promises and simple values, replace some nodes with asynchronous content, remove nodes depending on asynchronous conditions etc.
+
+It handles each node as soon as it becomes available for processing, thus resulting in low overall latency.
 
 ## Dependencies
 

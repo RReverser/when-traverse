@@ -55,19 +55,25 @@ var tree = {
 ```javascript
 whenTraverse(tree, {
   enter: function (node) {
-    // is called when node object itself is resolved but didn't enter subtree yet;
-    // return nothing, new node to enter into, whenTraverse.SKIP or whenTraverse.REMOVE from here
+    /*
+      is called when node object itself is resolved but didn't enter subtree yet;
+      return nothing, new node to enter into, whenTraverse.SKIP or whenTraverse.REMOVE from here
+      (can be Promise of any listed above as well)
+    */
   },
   leave: function (node) {
-    // is called when node with all the children are resolved and subtree is left;
-    // return nothing, new node, whenTraverse.SKIP or whenTraverse.REMOVE from here
+    /*
+      is called when node with all the children are resolved and subtree is left;
+      return nothing, new node to enter into, whenTraverse.SKIP or whenTraverse.REMOVE from here
+      (can be Promise of any listed above as well)
+    */
   }
 }).then(function (tree) {
   // got resolved tree here:
 
   // 1) nodes that were marked with `whenTraverse.SKIP` and their children are still left intouched;
   // 2) nodes that were marked with `whenTraverse.REMOVE` are completely deleted from tree;
-  // 3) other nodes are left intouched or replaced with new nodes returned from either `enter` or `leave`
+  // 3) other nodes are left as-is or replaced with new nodes returned from either `enter` or `leave`
 });
 ```
 

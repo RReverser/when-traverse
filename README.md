@@ -55,25 +55,13 @@ var tree = {
 ```javascript
 whenTraverse(tree, {
   enter: function (node) {
-    /*
-      is called when node object itself is resolved but didn't enter subtree yet;
-      return nothing, new node to enter into, whenTraverse.SKIP or whenTraverse.REMOVE from here
-      (can be Promise of any listed above as well)
-    */
+    // is called when node object itself is resolved but didn't enter subtree yet
   },
   leave: function (node) {
-    /*
-      is called when node with all the children are resolved and subtree is left;
-      return nothing, new node to enter into, whenTraverse.SKIP or whenTraverse.REMOVE from here
-      (can be Promise of any listed above as well)
-    */
+    // is called when node with all the children are resolved and subtree is processed
   }
 }).then(function (tree) {
-  // got resolved tree here:
-
-  // 1) nodes that were marked with `whenTraverse.SKIP` and their children are still left intouched;
-  // 2) nodes that were marked with `whenTraverse.REMOVE` are completely deleted from tree;
-  // 3) other nodes are left as-is or replaced with new nodes returned from either `enter` or `leave`
+  // got resolved tree here
 });
 ```
 
@@ -97,6 +85,16 @@ whenTraverse(tree).then(function (tree) {
   // got resolved tree here
 });
 ```
+
+### From `enter` and `leave` you can return either:
+
+1. nothing (so this node object will be left intouched);
+2. new node to replace old one with;
+3. `whenTraverse.SKIP` to skip this node's children processing (useful in `enter` when you don't want to wait to transform children nor wait for children promises);
+4. `whenTraverse.REMOVE` to remove this node in parent;
+5. `Promise` of anything listed above.
+
+---
 
 Check out [test.js](https://github.com/RReverser/when-traverse/blob/master/test.js) for more code.
 

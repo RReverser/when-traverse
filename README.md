@@ -8,7 +8,7 @@ Consider this function as `Promise.map` + `Promise.all` for trees.
 
 Often enough, we have tree structures, and when we want to transform them asynchronously, we have no other options but use sync variants of functions or write ugly hacks by collecting arrays of inner promises, handling them with `Promise.all`, collecting new promises (if there are), waiting for them with `Promise.all` again and do a lot of other silly stuff.
 
-Consider this function as `Promise.all` for trees that allows you to wait for tree of mixed promises and simple values, replace some nodes with asynchronous content, remove nodes depending on asynchronous conditions etc.
+This function allows you to wait for tree of mixed promises and simple values, replace some nodes with asynchronous content, remove nodes depending on asynchronous conditions etc. and does that all that for each node as soon as it becomes available.
 
 ## Dependencies
 
@@ -29,6 +29,8 @@ $ component install RReverser/when-traverse
 ```
 
 ## Usage
+
+### Let's assume you have following asynchronous tree:
 
 ```js
 // delayed promise helper (for example only)
@@ -52,17 +54,19 @@ var tree = {
     shouldNotGoHere: delay(5000, 5)
   }
 };
+```
 
-var startTime = Date.now();
+### Then you can process it as follows:
 
+```javascript
 whenTraverse(tree, {
   enter: function (node) {
     // is called when node object itself is resolved but didn't enter subtree yet;
-    // return new node to enter into, whenTraverse.SKIP or whenTraverse.REMOVE from here
+    // return nothing, new node to enter into, whenTraverse.SKIP or whenTraverse.REMOVE from here
   },
   leave: function (node) {
     // is called when node with all the children are resolved and subtree is left;
-    // return new node, whenTraverse.SKIP or whenTraverse.REMOVE from here
+    // return nothing, new node, whenTraverse.SKIP or whenTraverse.REMOVE from here
   }
 }).then(function (tree) {
   // got resolved tree here:
@@ -70,6 +74,27 @@ whenTraverse(tree, {
   // 1) nodes that were marked with `whenTraverse.SKIP` and their children are still left intouched;
   // 2) nodes that were marked with `whenTraverse.REMOVE` are completely deleted from tree;
   // 3) other nodes are left intouched or replaced with new nodes returned from either `enter` or `leave`
+});
+```
+
+or
+
+```javascript
+// shorthand for `whenTraverse(tree, {leave: function () { ... }});
+// process each node only when it's completely resolved with subtree
+whenTraverse(tree, function leave(node) {
+  // process each node here
+}).then(function (tree) {
+  // got resolved tree here
+});
+```
+
+or
+
+```javascript
+// no changes, only waiting for all the promises in tree
+whenTraverse(tree).then(function (tree) {
+  // got resolved tree here
 });
 ```
 

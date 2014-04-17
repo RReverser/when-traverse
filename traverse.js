@@ -49,6 +49,9 @@
 	}
 
 	function whenTraverse(node, options) {
+		if (!options) {
+			options = {};
+		} else
 		if (options instanceof Function) {
 			options = {leave: options};
 		}

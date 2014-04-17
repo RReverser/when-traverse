@@ -1,0 +1,30 @@
+{
+  "name": "when-traverse",
+  "version": "1.0.0",
+  "description": "Asynchronously traverse tree of mixed promises and values",
+  "license": "MIT",
+  "repository": "RReverser/when-traverse",
+  "main": "traverse.js",
+  "author": "Ingvar Stepanyan <me@rreverser.com>",
+  "scripts": {
+    "pretest": "./node_modules/.bin/jshint traverse.js test.js",
+    "test": "./node_modules/.bin/nodeunit test.js"
+  },
+  "files": [
+    "traverse.js"
+  ],
+  "keywords": [
+    "async",
+    "promise",
+    "tree",
+    "traverse",
+    "thenable"
+  ],
+  "dependencies": {
+    "es6-promise": "~0.1.1"
+  },
+  "devDependencies": {
+    "nodeunit": "~0.8.6",
+    "jshint": "~2.5.0"
+  }
+}

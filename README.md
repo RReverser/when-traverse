@@ -18,15 +18,7 @@ If it's not, for AMD and Node.js [polyfill](https://github.com/jakearchibald/es6
 
 ## Install
 
-Install [manually](https://github.com/RReverser/when-traverse) or with a package-manager.
-
-```bash
-$ npm install --save when-traverse
-```
-
-```bash
-$ component install RReverser/when-traverse
-```
+Use with AMD, Node.js or simple `<script src>`.
 
 ## Usage
 

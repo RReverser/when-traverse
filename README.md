@@ -2,6 +2,14 @@
 
 > Asynchronously traverse tree of mixed promises and values
 
+## Why
+
+Consider this function as `Promise.map` + `Promise.all` for trees.
+
+Often enough, we have tree structures, and when we want to transform them asynchronously, we have no other options but use sync variants of functions or write ugly hacks by collecting arrays of inner promises, handling them with `Promise.all`, collecting new promises (if there are), waiting for them with `Promise.all` again and do a lot of other silly stuff.
+
+Consider this function as `Promise.all` for trees that allows you to wait for tree of mixed promises and simple values, replace some nodes with asynchronous content, remove nodes depending on asynchronous conditions etc.
+
 ## Dependencies
 
 Function assumes that DOM API compliant `Promise` exists in global namespace (true for latest versions of Chrome and Firefox).
@@ -49,15 +57,16 @@ var startTime = Date.now();
 
 whenTraverse(tree, {
   enter: function (node) {
-    // is called when node object itself is resolved but didn't enter subtree yet
+    // is called when node object itself is resolved but didn't enter subtree yet;
     // return new node to enter into, whenTraverse.SKIP or whenTraverse.REMOVE from here
   },
   leave: function (node) {
-    // is called when node with all the children are resolved and subtree is left
+    // is called when node with all the children are resolved and subtree is left;
     // return new node, whenTraverse.SKIP or whenTraverse.REMOVE from here
   }
 }).then(function (tree) {
   // got resolved tree here:
+
   // 1) nodes that were marked with `whenTraverse.SKIP` and their children are still left intouched;
   // 2) nodes that were marked with `whenTraverse.REMOVE` are completely deleted from tree;
   // 3) other nodes are left intouched or replaced with new nodes returned from either `enter` or `leave`

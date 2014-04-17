@@ -92,7 +92,7 @@ whenTraverse(tree).then(function (tree) {
 });
 ```
 
-Check out [test.js](https://github.com/RReverser/when-traverse/blob/master/traverse.js) for more code.
+Check out [test.js](https://github.com/RReverser/when-traverse/blob/master/test.js) for more code.
 
 ## License
 

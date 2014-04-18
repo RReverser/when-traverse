@@ -12,36 +12,44 @@ function delay(timeout, value) {
 	});
 }
 
-// sample tree with nested simple and promised nodes
-function getSampleTree() {
-	return {
-		a: 1,
-		b: delay(100, {
-			b1: delay(200, 2),
-			b2: delay(300, 3)
-		}),
-		c: delay(400, 4),
-		d: {
-			shouldNotGoHere: delay(500, 5)
-		}
+// test wrapped providing test object, sample tree and time difference function
+function whenTraverseTest(callback) {
+	return function (test) {
+		var tree = {
+			a: 1,
+			b: delay(100, {
+				b1: delay(200, 2),
+				b2: delay(300, 3)
+			}),
+			c: delay(400, 4),
+			d: {
+				shouldNotGoHere: delay(500, 5)
+			}
+		};
+
+		var startTime = Date.now();
+		var timeDiff = function () { return Date.now() - startTime };
+
+		callback(test, tree, timeDiff).catch(function (err) {
+			console.log(test.ifError.toString());
+			test.ifError(err);
+		}).then(function () {
+			test.done();
+		});
 	};
 }
 
-exports['enter+leave'] = function (test) {
-	var tree = getSampleTree();
-
-	var startTime = Date.now();
-
+exports['enter+leave'] = whenTraverseTest(function (test, tree, getElapsed) {
 	return whenTraverse(tree, {
 		enter: function (node) {
-			console.log('Entered', node, 'after', (Date.now() - startTime), 'ms');
+			console.log('Entered', node, 'after', getElapsed(), 'ms');
 
 			if (typeof node === 'object' && 'shouldNotGoHere' in node) {
 				return whenTraverse.SKIP;
 			}
 		},
 		leave: function (node) {
-			console.log('Left', node, 'after', (Date.now() - startTime), 'ms');
+			console.log('Left', node, 'after', getElapsed(), 'ms');
 
 			if (node === 3) {
 				return whenTraverse.REMOVE;
@@ -63,21 +71,12 @@ exports['enter+leave'] = function (test) {
 
 		// d.shouldNotGoHere should not be resolved as `d` was skipped (but it should exist as Promise)
 		test.ok(typeof newTree.d.shouldNotGoHere === 'object' && newTree.d.shouldNotGoHere.then instanceof Function);
-
-		test.done();
-	}, function (err) {
-		test.ifError(err);
-		test.done();
 	});
-};
+});
 
-exports['leave shorthand'] = function (test)  {
-	var tree = getSampleTree();
-
-	var startTime = Date.now();
-
+exports['leave shorthand'] = whenTraverseTest(function (test, tree, getElapsed)  {
 	return whenTraverse(tree, function (node) {
-		console.log('Left', node, 'after', (Date.now() - startTime), 'ms');
+		console.log('Left', node, 'after', getElapsed(), 'ms');
 
 		if (node === 3) {
 			return whenTraverse.REMOVE;
@@ -98,19 +97,10 @@ exports['leave shorthand'] = function (test)  {
 		test.deepEqual(newTree.d, {
 			shouldNotGoHere: 5
 		});
-
-		test.done();
-	}, function (err) {
-		test.ifError(err);
-		test.done();
 	});
-};
+});
 
-exports['just waiting'] = function (test) {
-	var tree = getSampleTree();
-
-	var startTime = Date.now();
-
+exports['just waiting'] = whenTraverseTest(function (test, tree) {
 	return whenTraverse(tree).then(function (newTree) {
 		// got resolved tree here (everything is resolved except `d` and descendants):
 
@@ -128,10 +118,5 @@ exports['just waiting'] = function (test) {
 				shouldNotGoHere: 5
 			}
 		});
-
-		test.done();
-	}, function (err) {
-		test.ifError(err);
-		test.done();
 	});
-};
+});

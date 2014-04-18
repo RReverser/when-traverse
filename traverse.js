@@ -26,12 +26,12 @@
 		return arg instanceof Promise ? arg : resolve(arg);
 	};
 
-	function when(value, func) {
+	function when(func, value, key, parent) {
 		var promise = asPromise(value);
 
 		if (func) {
 			promise = promise.then(function (value) {
-				return asPromise(func(value)).then(function (newValue) {
+				return asPromise(func(value, key, parent)).then(function (newValue) {
 					return newValue === undefined ? value : newValue;
 				});
 			});
@@ -60,8 +60,8 @@
 			}
 		}
 
-		return (function into(node) {
-			return when(node, enter).then(function (node) {
+		return (function into(node, key, parentNode) {
+			return when(enter, node, key, parentNode).then(function (node) {
 				if (!isObject(node) || isSkipped(node)) {
 					return node;
 				}
@@ -69,7 +69,7 @@
 				var promises = Object.keys(node).map(function (key) {
 					var subNode = node[key];
 
-					return into(subNode).then(function (newSubNode) {
+					return into(subNode, key, node).then(function (newSubNode) {
 						if (!isSkipped(newSubNode)) {
 							if (newSubNode !== subNode) {
 								node[key] = newSubNode;
@@ -86,7 +86,7 @@
 					return node;
 				});
 			}).then(function (node) {
-				return isSkipped(node) ? node : when(node, leave);
+				return isSkipped(node) ? node : when(leave, node, key, parentNode);
 			});
 		})(node);
 	}

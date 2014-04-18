@@ -54,10 +54,10 @@ var tree = {
 
 ```javascript
 whenTraverse(tree, {
-  enter: function (node) {
+  enter: function (node, key, parentNode) {
     // is called when node object itself is resolved but didn't enter subtree yet
   },
-  leave: function (node) {
+  leave: function (node, key, parentNode) {
     // is called when node with all the children are resolved and subtree is processed
   }
 }).then(function (tree) {
@@ -70,7 +70,7 @@ or
 ```javascript
 // shorthand for `whenTraverse(tree, {leave: function () { ... }});
 // process each node only when it's completely resolved with subtree
-whenTraverse(tree, function leave(node) {
+whenTraverse(tree, function (node, key, parentNode) {
   // process each node here
 }).then(function (tree) {
   // got resolved tree here
@@ -86,11 +86,11 @@ whenTraverse(tree).then(function (tree) {
 });
 ```
 
-### From `enter` and `leave` you can return either:
+### From both `enter` and `leave` you can return either:
 
 1. nothing (so this node object will be left intouched);
 2. new node to replace old one with;
-3. `whenTraverse.SKIP` to skip this node's children processing (useful in `enter` when you don't want to wait to transform children nor wait for children promises);
+3. `whenTraverse.SKIP` to skip further processing of this node and children (useful in `enter` when you don't want to wait for children transformations nor get this node in `leave`);
 4. `whenTraverse.REMOVE` to remove this node in parent;
 5. `Promise` of anything listed above.
 

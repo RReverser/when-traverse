@@ -1,7 +1,8 @@
 'use strict';
 
 var whenTraverse = require('./'),
-	Promise = require('es6-promise').Promise;
+	Promise = require('es6-promise').Promise,
+	util = require('util');
 
 Promise.prototype.inspect = function () { return 'Promise' };
 
@@ -43,10 +44,10 @@ function whenTraverseTest(callback) {
 
 exports['enter+leave'] = whenTraverseTest(function (test, tree, getElapsed) {
 	return whenTraverse(tree, {
-		enter: function (node) {
+		enter: function (node, key, parentNode) {
 			var elapsed = getElapsed();
 
-			console.log('Entered', node, 'after', elapsed, 'ms');
+			console.log('Entered %s (key: %s) after %d ms', util.inspect(node), key, elapsed);
 
 			// check timings
 
@@ -68,7 +69,7 @@ exports['enter+leave'] = whenTraverseTest(function (test, tree, getElapsed) {
 				return whenTraverse.SKIP;
 			}
 		},
-		leave: function (node) {
+		leave: function (node, key, parentNode) {
 			// skip-values returned from `enter` should not come into `leave`
 			test.notEqual(node, whenTraverse.SKIP);
 			test.notEqual(node, whenTraverse.REMOVE);
@@ -76,7 +77,7 @@ exports['enter+leave'] = whenTraverseTest(function (test, tree, getElapsed) {
 
 			var elapsed = getElapsed();
 
-			console.log('Left', node, 'after', elapsed, 'ms');
+			console.log('Left %s (key: %s) after %d ms', util.inspect(node), key, elapsed);
 
 			// check timings
 
@@ -118,8 +119,8 @@ exports['enter+leave'] = whenTraverseTest(function (test, tree, getElapsed) {
 });
 
 exports['leave shorthand'] = whenTraverseTest(function (test, tree, getElapsed)  {
-	return whenTraverse(tree, function (node) {
-		console.log('Left', node, 'after', getElapsed(), 'ms');
+	return whenTraverse(tree, function (node, key, parentNode) {
+		console.log('Left %s (key: %s) after %d ms', util.inspect(node), key, getElapsed());
 
 		if (node === 3) {
 			return whenTraverse.REMOVE;

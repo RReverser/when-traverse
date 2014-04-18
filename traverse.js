@@ -49,40 +49,46 @@
 	}
 
 	function whenTraverse(node, options) {
-		if (!options) {
-			options = {};
-		} else
-		if (options instanceof Function) {
-			options = {leave: options};
+		var enter, leave;
+
+		if (options) {
+			if (options instanceof Function) {
+				leave = options;
+			} else {
+				enter = options.enter;
+				leave = options.leave;
+			}
 		}
 
-		return when(node, options.enter).then(function (node) {
-			if (!isObject(node) || isSkipped(node)) {
-				return node;
-			}
+		return (function into(node) {
+			return when(node, enter).then(function (node) {
+				if (!isObject(node) || isSkipped(node)) {
+					return node;
+				}
 
-			var promises = Object.keys(node).map(function (key) {
-				var subNode = node[key];
+				var promises = Object.keys(node).map(function (key) {
+					var subNode = node[key];
 
-				return whenTraverse(subNode, options).then(function (newSubNode) {
-					if (!isSkipped(newSubNode)) {
-						if (newSubNode !== subNode) {
-							node[key] = newSubNode;
+					return into(subNode).then(function (newSubNode) {
+						if (!isSkipped(newSubNode)) {
+							if (newSubNode !== subNode) {
+								node[key] = newSubNode;
+							}
+						} else {
+							if (newSubNode === whenTraverse.REMOVE) {
+								delete node[key];
+							}
 						}
-					} else {
-						if (newSubNode === whenTraverse.REMOVE) {
-							delete node[key];
-						}
-					}
+					});
 				});
-			});
 
-			return Promise.all(promises).then(function () {
-				return node;
+				return Promise.all(promises).then(function () {
+					return node;
+				});
+			}).then(function (node) {
+				return when(node, leave);
 			});
-		}).then(function (node) {
-			return when(node, options.leave);
-		});
+		})(node);
 	}
 
 	Object.defineProperties(whenTraverse, {

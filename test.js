@@ -5,8 +5,8 @@ var whenTraverse = require('./'),
 
 Promise.prototype.inspect = function () { return 'Promise' };
 
-// delayed promise helper (for example only)
-function delay(timeout, value) {
+// delayed promise helper (for tests only)
+function delayed(timeout, value) {
 	return new Promise(function (resolve) {
 		setTimeout(function () {
 			resolve(value);
@@ -18,14 +18,14 @@ function delay(timeout, value) {
 function whenTraverseTest(callback) {
 	return function (test) {
 		var tree = {
-			a: 1,
-			b: delay(100, {
-				b1: delay(200, 2),
-				b2: delay(300, 3)
+			a: 0,
+			b: delayed(100, {
+				b1: delayed(200, 2),
+				b2: delayed(300, 3)
 			}),
-			c: delay(400, 4),
+			c: delayed(400, 4),
 			d: {
-				shouldNotGoHere: delay(500, 5)
+				shouldNotGoHere: delayed(500, 5)
 			}
 		};
 
@@ -44,14 +44,55 @@ function whenTraverseTest(callback) {
 exports['enter+leave'] = whenTraverseTest(function (test, tree, getElapsed) {
 	return whenTraverse(tree, {
 		enter: function (node) {
-			console.log('Entered', node, 'after', getElapsed(), 'ms');
+			var elapsed = getElapsed();
+
+			console.log('Entered', node, 'after', elapsed, 'ms');
+
+			// check timings
+
+			var shouldElapse;
+
+			if (typeof node === 'number') {
+				shouldElapse = node * 100;
+			} else
+			if (node === tree || node === tree.d) {
+				shouldElapse = 0;
+			} else
+			if ('b1' in node) {
+				shouldElapse = 100;
+			}
+
+			test.equal(Math.round(elapsed / 100) * 100, shouldElapse);
 
 			if (typeof node === 'object' && 'shouldNotGoHere' in node) {
 				return whenTraverse.SKIP;
 			}
 		},
 		leave: function (node) {
-			console.log('Left', node, 'after', getElapsed(), 'ms');
+			// skip-values returned from `enter` should not come into `leave`
+			test.notEqual(node, whenTraverse.SKIP);
+			test.notEqual(node, whenTraverse.REMOVE);
+			test.notEqual(node, tree.d);
+
+			var elapsed = getElapsed();
+
+			console.log('Left', node, 'after', elapsed, 'ms');
+
+			// check timings
+
+			var shouldElapse;
+
+			if (typeof node === 'number') {
+				shouldElapse = node * 100;
+			} else
+			if ('b1' in node) {
+				shouldElapse = 300;
+			} else
+			if (node === tree) {
+				shouldElapse = 400;
+			}
+
+			test.equal(Math.round(elapsed / 100) * 100, shouldElapse);
 
 			if (node === 3) {
 				return whenTraverse.REMOVE;
@@ -64,7 +105,7 @@ exports['enter+leave'] = whenTraverseTest(function (test, tree, getElapsed) {
 		test.equal(newTree, tree);
 
 		// should have non-skipped values resolved
-		test.equal(newTree.a, 1);
+		test.equal(newTree.a, 0);
 		test.deepEqual(newTree.b, {
 			b1: 2
 			// b2: 3 [REMOVE]
@@ -90,7 +131,7 @@ exports['leave shorthand'] = whenTraverseTest(function (test, tree, getElapsed) 
 		test.equal(newTree, tree);
 
 		// should have non-skipped values resolved
-		test.equal(newTree.a, 1);
+		test.equal(newTree.a, 0);
 		test.deepEqual(newTree.b, {
 			b1: 2
 			// b2: 3 [REMOVE]
@@ -110,7 +151,7 @@ exports['just waiting'] = whenTraverseTest(function (test, tree) {
 		test.equal(newTree, tree);
 
 		test.deepEqual(newTree, {
-			a: 1,
+			a: 0,
 			b: {
 				b1: 2,
 				b2: 3

@@ -1,6 +1,6 @@
 {
   "name": "when-traverse",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Asynchronously traverse tree of mixed promises and values",
   "license": "MIT",
   "repository": "RReverser/when-traverse",

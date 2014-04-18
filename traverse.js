@@ -86,7 +86,7 @@
 					return node;
 				});
 			}).then(function (node) {
-				return when(node, leave);
+				return isSkipped(node) ? node : when(node, leave);
 			});
 		})(node);
 	}

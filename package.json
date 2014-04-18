@@ -7,8 +7,8 @@
   "main": "traverse.js",
   "author": "Ingvar Stepanyan <me@rreverser.com>",
   "scripts": {
-    "pretest": "./node_modules/.bin/jshint traverse.js test.js",
-    "test": "./node_modules/.bin/nodeunit test.js"
+    "pretest": "jshint traverse.js test.js",
+    "test": "nodeunit test.js"
   },
   "files": [
     "traverse.js"

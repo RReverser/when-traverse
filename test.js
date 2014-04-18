@@ -3,6 +3,8 @@
 var whenTraverse = require('./'),
 	Promise = require('es6-promise').Promise;
 
+Promise.prototype.inspect = function () { return 'Promise' };
+
 // delayed promise helper (for example only)
 function delay(timeout, value) {
 	return new Promise(function (resolve) {

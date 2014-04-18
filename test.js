@@ -114,8 +114,13 @@ exports['enter+leave'] = whenTraverseTest(function (test, tree, getElapsed) {
 		test.equal(newTree.c, 4);
 
 		// d.shouldNotGoHere should not be resolved as `d` was skipped (but it should exist as Promise)
-		test.ok(typeof newTree.d.shouldNotGoHere === 'object' && newTree.d.shouldNotGoHere.then instanceof Function);
+		test.ok(newTree.d.shouldNotGoHere instanceof Promise);
 	});
+});
+
+exports['double-processing'] = whenTraverseTest(function (test, tree, getElapsed) {
+	// TODO: write sample for double-processing with optimized traverse pipeline
+	return Promise.resolve(tree);
 });
 
 exports['leave shorthand'] = whenTraverseTest(function (test, tree, getElapsed)  {

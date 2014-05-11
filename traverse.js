@@ -1,100 +1,93 @@
-(function (root, factory) {
-	var hasPromise = typeof Promise !== 'undefined';
+(factory => {
+	let hasPromise = typeof Promise !== 'undefined';
 
 	if (typeof define === 'function' && define.amd) {
 		// loading Promise polyfill only when it's not available natively
-		define(hasPromise ? [] : ['//s3.amazonaws.com/es6-promises/promise-0.1.1.min.js'], function () {
-			return factory(Promise);
-		});
+		define(hasPromise ? [] : ['//rawgit.com/lvivski/davy/master/davy.min.js'], () => factory(Promise));
 	} else if (typeof exports === 'object') {
-		module.exports = factory(hasPromise ? Promise : require('es6-promise').Promise);
+		module.exports = factory(hasPromise ? Promise : require('davy'));
 	} else {
-		root.whenTraverse = factory(Promise);
+		this.whenTraverse = factory(Promise);
 	}
-}(this, function (Promise) {
+})(Promise => {
 	'use strict';
 
 	/* polyfilling missing methods in some current browser implementations */
 
-	var resolve = Promise.resolve.bind(Promise) || function (arg) {
-		return new Promise(function (setValue) {
-			setValue(arg);
-		});
-	};
+	let resolve = Promise.resolve.bind(Promise) || (arg => new Promise(resolve => resolve(arg)));
+	let asPromise = Promise.cast.bind(Promise) || (arg => arg instanceof Promise ? arg : resolve(arg));
 
-	var asPromise = Promise.cast.bind(Promise) || function (arg) {
-		return arg instanceof Promise ? arg : resolve(arg);
-	};
+	let isObject = node => typeof node === 'object' && node !== null;
+	let isSkipped = node => node === WhenTraverse.SKIP || node === WhenTraverse.REMOVE;
 
-	function when(func, value, key, parent) {
-		var promise = asPromise(value);
-
-		if (func) {
-			promise = promise.then(function (value) {
-				return asPromise(func(value, key, parent)).then(function (newValue) {
-					return newValue === undefined ? value : newValue;
-				});
-			});
-		}
-
-		return promise;
-	}
-
-	function isObject(node) {
-		return typeof node === 'object' && node !== null;
-	}
-
-	function isSkipped(node) {
-		return node === whenTraverse.SKIP || node === whenTraverse.REMOVE;
-	}
-
-	function whenTraverse(node, options) {
-		var enter, leave;
-
-		if (options) {
-			if (options instanceof Function) {
-				leave = options;
-			} else {
-				enter = options.enter;
-				leave = options.leave;
+	class WhenTraverse {
+		constructor(node, options) {
+			if (!(this instanceof WhenTraverse)) {
+				return new WhenTraverse(node, options);
 			}
+
+			switch (typeof options) {
+				case 'object':
+					let enter = this._wrapWhen(options.enter);
+					let leave = this._wrapWhen(options.leave);
+
+					this.visit = (node, key, parentNode) => (
+						enter(node, key, parentNode)
+						.then(node => this.into(node))
+						.then(node => isSkipped(node) ? node : leave(node, key, parentNode))
+					);
+
+					break;
+
+				case 'function':
+					this.visit = this._wrapWhen(options);
+					break;
+
+				case 'undefined':
+					this.visit = this.into;
+					break;
+
+				default:
+					throw new TypeError('Unsupported visitor config.');
+			}
+
+			return this.visit(node);
 		}
 
-		return (function into(node, key, parentNode) {
-			return when(enter, node, key, parentNode).then(function (node) {
-				if (!isObject(node) || isSkipped(node)) {
-					return node;
-				}
+		_wrapWhen(func) {
+			return func ? ((node, key, parentNode) =>
+				asPromise(func.call(this, node, key, parentNode))
+				.then(newValue => newValue === undefined ? node : newValue)
+			) : resolve;
+		}
 
-				var promises = Object.keys(node).map(function (key) {
-					var subNode = node[key];
+		into(node) {
+			if (!isObject(node) || isSkipped(node)) {
+				return Promise.resolve(node);
+			}
 
-					return into(subNode, key, node).then(function (newSubNode) {
+			return Promise.all(Object.keys(node).map(key => {
+				let subNode = node[key];
+
+				return asPromise(subNode)
+					.then(subNode => this.visit(subNode, key, node))
+					.then(newSubNode => {
 						if (!isSkipped(newSubNode)) {
 							if (newSubNode !== subNode) {
 								node[key] = newSubNode;
 							}
 						} else {
-							if (newSubNode === whenTraverse.REMOVE) {
+							if (newSubNode === WhenTraverse.REMOVE) {
 								delete node[key];
 							}
 						}
 					});
-				});
-
-				return Promise.all(promises).then(function () {
-					return node;
-				});
-			}).then(function (node) {
-				return isSkipped(node) ? node : when(leave, node, key, parentNode);
-			});
-		})(node);
+			})).then(() => node);
+		}
 	}
 
-	Object.defineProperties(whenTraverse, {
-		SKIP: {enumerable: true, value: {}},
-		REMOVE: {enumerable: true, value: {}}
-	});
+	// defining non-modifiable constants
+	['SKIP', 'REMOVE'].forEach(name => Object.defineProperty(WhenTraverse, name, {enumerable: true, value: {}}));
 
-	return whenTraverse;
-}));
+	return WhenTraverse;
+});

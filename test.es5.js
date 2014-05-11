@@ -1,17 +1,17 @@
 'use strict';
 
-let whenTraverse = require('./'),
+var whenTraverse = require('./'),
 	Promise = require('davy'),
 	util = require('util');
 
-Promise.prototype.inspect = () => 'Promise';
+Promise.prototype.inspect = function()  {return 'Promise'};
 
 // delayed promise helper (for tests only)
-var delayed = (timeout, value) => new Promise(resolve => setTimeout(() => resolve(value), timeout));
+var delayed = function(timeout, value)  {return new Promise(function(resolve ) {return setTimeout(function()  {return resolve(value)}, timeout)})};
 
 // test wrapped providing test object, sample tree and time difference function
-var whenTraverseTest = callback => test => {
-	let tree = {
+var whenTraverseTest = function(callback ) {return function(test ) {
+	var tree = {
 		a: 0,
 		b: delayed(100, {
 			b1: delayed(200, 2),
@@ -23,22 +23,22 @@ var whenTraverseTest = callback => test => {
 		}
 	};
 
-	let startTime = Date.now();
-	let timeDiff = () => Date.now() - startTime;
+	var startTime = Date.now();
+	var timeDiff = function()  {return Date.now() - startTime};
 
-	callback(test, tree, timeDiff).throw().then(() => test.done());
-};
+	callback(test, tree, timeDiff).throw().then(function()  {return test.done()});
+}};
 
-exports['enter+leave'] = whenTraverseTest((test, tree, getElapsed) =>
-	whenTraverse(tree, {
-		enter: (node, key, parentNode) => {
-			let elapsed = getElapsed();
+exports['enter+leave'] = whenTraverseTest(function(test, tree, getElapsed) 
+	{return whenTraverse(tree, {
+		enter: function(node, key, parentNode)  {
+			var elapsed = getElapsed();
 
 			console.log('Entered %s (key: %s) after %d ms', util.inspect(node), key, elapsed);
 
 			// check timings
 
-			let shouldElapse;
+			var shouldElapse;
 
 			if (typeof node === 'number') {
 				shouldElapse = node * 100;
@@ -56,19 +56,19 @@ exports['enter+leave'] = whenTraverseTest((test, tree, getElapsed) =>
 				return whenTraverse.SKIP;
 			}
 		},
-		leave: (node, key, parentNode) => {
+		leave: function(node, key, parentNode)  {
 			// skip-values returned from `enter` should not come into `leave`
 			test.notEqual(node, whenTraverse.SKIP);
 			test.notEqual(node, whenTraverse.REMOVE);
 			test.notEqual(node, tree.d);
 
-			let elapsed = getElapsed();
+			var elapsed = getElapsed();
 
 			console.log('Left %s (key: %s) after %d ms', util.inspect(node), key, elapsed);
 
 			// check timings
 
-			let shouldElapse;
+			var shouldElapse;
 
 			if (typeof node === 'number') {
 				shouldElapse = node * 100;
@@ -86,7 +86,7 @@ exports['enter+leave'] = whenTraverseTest((test, tree, getElapsed) =>
 				return whenTraverse.REMOVE;
 			}
 		}
-	}).then(newTree => {
+	}).then(function(newTree ) {
 		// got resolved tree here (everything is resolved except `d` and descendants):
 
 		// should be same object
@@ -102,11 +102,11 @@ exports['enter+leave'] = whenTraverseTest((test, tree, getElapsed) =>
 
 		// d.shouldNotGoHere should not be resolved as `d` was skipped (but it should exist as Promise)
 		test.ok(newTree.d.shouldNotGoHere instanceof Promise);
-	})
+	})}
 );
 
-exports['own visitor'] = whenTraverseTest((test, tree, getElapsed) =>
-	whenTraverse(tree, function (node, key, parentNode) {
+exports['own visitor'] = whenTraverseTest(function(test, tree, getElapsed) 
+	{return whenTraverse(tree, function (node, key, parentNode) {
 		console.log('Left %s (key: %s) after %d ms', util.inspect(node), key, getElapsed());
 
 		if (node === 3) {
@@ -114,7 +114,7 @@ exports['own visitor'] = whenTraverseTest((test, tree, getElapsed) =>
 		}
 
 		return this.into(node);
-	}).then(newTree => {
+	}).then(function(newTree ) {
 		// got resolved tree here (everything is resolved except `d` and descendants):
 
 		// should be same object
@@ -130,11 +130,11 @@ exports['own visitor'] = whenTraverseTest((test, tree, getElapsed) =>
 		test.deepEqual(newTree.d, {
 			shouldNotGoHere: 5
 		});
-	})
+	})}
 );
 
-exports['just waiting'] = whenTraverseTest((test, tree) =>
-	whenTraverse(tree).then(newTree => {
+exports['just waiting'] = whenTraverseTest(function(test, tree) 
+	{return whenTraverse(tree).then(function(newTree ) {
 		// got resolved tree here (everything is resolved except `d` and descendants):
 
 		// should be same object
@@ -151,5 +151,5 @@ exports['just waiting'] = whenTraverseTest((test, tree) =>
 				shouldNotGoHere: 5
 			}
 		});
-	})
+	})}
 );

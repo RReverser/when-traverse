@@ -54,10 +54,10 @@ var tree = {
 
 ```javascript
 whenTraverse(tree, {
-  enter: function (node, key, parentNode) {
+  enter: function enter(node, key, parentNode) {
     // is called when node object itself is resolved but didn't enter subtree yet
   },
-  leave: function (node, key, parentNode) {
+  leave: function leave(node, key, parentNode) {
     // is called when node with all the children are resolved and subtree is processed
   }
 }).then(function (tree) {
@@ -68,10 +68,10 @@ whenTraverse(tree, {
 or
 
 ```javascript
-// shorthand for `whenTraverse(tree, {leave: function () { ... }});
-// process each node only when it's completely resolved with subtree
-whenTraverse(tree, function (node, key, parentNode) {
+// custom visit() function, you can process node and call this.into(node)
+whenTraverse(tree, function visit(node, key, parentNode) {
   // process each node here
+  return this.into(node); // and recursively visit children if needed
 }).then(function (tree) {
   // got resolved tree here
 });

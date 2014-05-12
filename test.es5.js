@@ -106,8 +106,9 @@ exports['enter+leave'] = whenTraverseTest(function(test, tree, getElapsed)
 );
 
 exports['own visitor'] = whenTraverseTest(function(test, tree, getElapsed) 
+	// can't use arrow syntax since access to bound `this` is needed
 	{return whenTraverse(tree, function (node, key, parentNode) {
-		console.log('Left %s (key: %s) after %d ms', util.inspect(node), key, getElapsed());
+		console.log('Visited %s (key: %s) after %d ms', util.inspect(node), key, getElapsed());
 
 		if (node === 3) {
 			return whenTraverse.REMOVE;
@@ -152,4 +153,36 @@ exports['just waiting'] = whenTraverseTest(function(test, tree)
 			}
 		});
 	})}
+);
+
+exports['double-processing'] = whenTraverseTest(function(test, tree, getElapsed) 
+	{return whenTraverse(tree, {
+		enter: function(node, key, parentNode)  {
+			if (typeof node === 'object' && 'shouldNotGoHere' in node) {
+				return whenTraverse.SKIP;
+			}
+		}
+	}).then(whenTraverse(tree, {
+		enter: function(node, key, parentNode)  {
+			var elapsed = getElapsed();
+
+			console.log('Double-entered %s (key: %s) after %d ms', util.inspect(node), key, elapsed);
+
+			// check timings
+
+			var shouldElapse;
+
+			if (typeof node === 'number') {
+				shouldElapse = node * 100;
+			} else
+			if (node === tree || node === tree.d) {
+				shouldElapse = 0;
+			} else
+			if ('b1' in node) {
+				shouldElapse = 100;
+			}
+
+			test.equal(Math.round(elapsed / 100) * 100, shouldElapse);
+		}
+	}))}
 );

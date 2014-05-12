@@ -29,21 +29,13 @@ var this$0 = this;(function(factory ) {
 			switch (typeof options) {
 				case 'object':
 					var enter = this._wrapWhen(options.enter);
+					var leave = this._wrapWhen(options.leave);
 
-					if (options.leave) {
-						var leave = this._wrapWhen(options.leave);
-
-						this.visit = function(node, key, parentNode)  
-							{return enter(node, key, parentNode)
-							.then(function(node ) {return this$0.into(node)})
-							.then(function(node ) {return isSkipped(node) ? node : leave(node, key, parentNode)})}
-						 ;
-					} else {
-						this.visit = function(node, key, parentNode)  {return enter(node, key, parentNode).then(function(node ) {
-							this$0.into(node);
-							return node;
-						})};
-					}
+					this.visit = function(node, key, parentNode)  
+						{return enter(node, key, parentNode)
+						.then(function(node ) {return this$0.into(node)})
+						.then(function(node ) {return isSkipped(node) ? node : leave(node, key, parentNode)})}
+					 ;
 
 					break;
 

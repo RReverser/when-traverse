@@ -29,21 +29,13 @@
 			switch (typeof options) {
 				case 'object':
 					let enter = this._wrapWhen(options.enter);
+					let leave = this._wrapWhen(options.leave);
 
-					if (options.leave) {
-						let leave = this._wrapWhen(options.leave);
-
-						this.visit = (node, key, parentNode) => (
-							enter(node, key, parentNode)
-							.then(node => this.into(node))
-							.then(node => isSkipped(node) ? node : leave(node, key, parentNode))
-						);
-					} else {
-						this.visit = (node, key, parentNode) => enter(node, key, parentNode).then(node => {
-							this.into(node);
-							return node;
-						});
-					}
+					this.visit = (node, key, parentNode) => (
+						enter(node, key, parentNode)
+						.then(node => this.into(node))
+						.then(node => isSkipped(node) ? node : leave(node, key, parentNode))
+					);
 
 					break;
 

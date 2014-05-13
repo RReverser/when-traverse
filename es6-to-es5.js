@@ -1,14 +1,14 @@
 var fs = require('fs'),
 	path = require('path'),
-	Promise = require('davy'),
-	whenReadFile = Promise.wrap(fs.readFile),
-	whenWriteFile = Promise.wrap(fs.writeFile),
+	Promise = require('bluebird'),
+	whenReadFile = Promise.promisify(fs.readFile),
+	whenWriteFile = Promise.promisify(fs.writeFile),
 	es6Transpiler = require('es6-transpiler');
 
 var whenJsHintRc = whenReadFile(__dirname + '/.jshintrc');
 
 return Promise.all(process.argv.slice(2).map(function (fileName) {
-	return Promise.all(whenJsHintRc, whenReadFile(fileName)).then(function (files) {
+	return Promise.all([whenJsHintRc, whenReadFile(fileName)]).then(function (files) {
 		var es5 = es6Transpiler.run({
 			globals: JSON.parse(files[0]).globals,
 			src: files[1]
@@ -22,4 +22,6 @@ return Promise.all(process.argv.slice(2).map(function (fileName) {
 			console.log('%s => %s', fileName, path.basename(fileName, '.js') + '.es5.js');
 		});
 	});
-})).throw();
+})).catch(function (err) {
+	throw err
+});

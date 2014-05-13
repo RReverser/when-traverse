@@ -1,6 +1,6 @@
 {
   "name": "when-traverse",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Asynchronously traverse tree of mixed promises and values",
   "license": "MIT",
   "repository": "RReverser/when-traverse",
@@ -21,7 +21,7 @@
     "thenable"
   ],
   "dependencies": {
-    "davy": "^0.3.0"
+    "bluebird": "^1.2.4"
   },
   "devDependencies": {
     "es6-transpiler": "^0.7.13-5",

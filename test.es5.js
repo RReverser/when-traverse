@@ -1,7 +1,7 @@
 'use strict';
 
 var whenTraverse = require('./'),
-	Promise = require('davy'),
+	Promise = require('bluebird'),
 	util = require('util');
 
 Promise.prototype.inspect = function()  {return 'Promise'};
@@ -26,7 +26,7 @@ var whenTraverseTest = function(callback ) {return function(test ) {
 	var startTime = Date.now();
 	var timeDiff = function()  {return Date.now() - startTime};
 
-	callback(test, tree, timeDiff).throw().then(function()  {return test.done()});
+	callback(test, tree, timeDiff).then(function()  {return test.done()}, function(err ) { throw err });
 }};
 
 exports['enter+leave'] = whenTraverseTest(function(test, tree, getElapsed) 

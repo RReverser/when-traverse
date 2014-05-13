@@ -3,9 +3,9 @@ var this$0 = this;(function(factory ) {
 
 	if (typeof define === 'function' && define.amd) {
 		// loading Promise polyfill only when it's not available natively
-		define(hasPromise ? [] : ['//rawgit.com/lvivski/davy/master/davy.min.js'], function()  {return factory(Promise)});
+		define(hasPromise ? [] : ['//cdnjs.cloudflare.com/ajax/libs/bluebird/1.2.2/bluebird.js'], function()  {return factory(Promise)});
 	} else if (typeof exports === 'object') {
-		module.exports = factory(hasPromise ? Promise : require('davy'));
+		module.exports = factory(hasPromise ? Promise : require('bluebird'));
 	} else {
 		this$0.whenTraverse = factory(Promise);
 	}

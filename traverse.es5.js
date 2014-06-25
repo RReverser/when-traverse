@@ -1,5 +1,8 @@
 var this$0 = this;(function(factory ) {
-	var hasPromise = typeof Promise !== 'undefined';
+	var hasPromise = typeof Promise !== 'undefined' &&
+		typeof Promise.cast !== 'undefined' &&
+		typeof Promise.resolve !== 'undefined' &&
+		typeof Promise.all !== 'undefined';
 
 	if (typeof define === 'function' && define.amd) {
 		// loading Promise polyfill only when it's not available natively
